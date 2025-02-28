@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template for VPC 
+#Metadata:
+
+Parameters:
+  VpcCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: Defining VPC CIDR range
+  
+  SubnetCIDR:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: Defining Subnet CIDR range
+
+Resources:
+  3tierAppVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 
+        Ref: VpcCIDR
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+       - Key: Name
+         Value: 3tierAppVPC
+
+  3tierAppInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: 3tierAppInternetGateway
+  
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: 3tierAppVPC
+      InternetGatewayId:
+        Ref: 3tierAppInternetGateway
+  
+  3tierAppPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: 3tierAppVPC
+      CidrBlock: 
+        Ref: SubnetCIDR
+      AvailabilityZone: "eu-central-1a"
+      Tags:
+      - Key: Name
+        Value: 3tierAppPublicSubnet
+  
+  3tierAppRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: 3tierAppVPC
+      Tags:
+      - Key: Name
+        Value: 3tierAppRouteTable
+
+  3tierAppRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: 3tierAppRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: 3tierAppInternetGateway
+  
+  mySubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: 3tierAppPublicSubnet
+      RouteTableId:
+        Ref: 3tierAppRouteTable
+  
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: 
+        Ref: 3tierAppVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+  
+
+#Outputs:

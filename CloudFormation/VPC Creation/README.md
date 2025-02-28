@@ -1,6 +1,3 @@
-# aws_3tier_app
-Simple 3tier application build using aws 
-
 # Steps for creating VPC + Internet Gateway + Security Groups
 1. Define VPC
 2. Create Internet Gateway for that VPC
