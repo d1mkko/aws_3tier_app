@@ -1,0 +1,20 @@
+#Config single instance
+Resources:
+  3tierAPPSingleInstance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: "ami-06ee6255945a96aba"
+      InstanceType: t2.micro
+      KeyName: "simple-key-pair"
+      SubnetId: "subnet-0f4c7161d10d1d74b"
+      SecurityGroupIds: 
+          - "sg-024bde94f33c4efa3"
+      BlockDeviceMappings: 
+      - DeviceName: "/dev/xvda"
+        Ebs: 
+          VolumeType: "gp3"
+          Iops: "200"
+          DeleteOnTermination: "true"
+          VolumeSize: "10"
+
+#Config Instance Group

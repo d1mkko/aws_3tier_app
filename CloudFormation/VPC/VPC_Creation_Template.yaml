@@ -82,6 +82,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http to client host
+      GroupName : 3tierAppSecGroup
       VpcId: 
         Ref: 3tierAppVPC
       SecurityGroupIngress:
