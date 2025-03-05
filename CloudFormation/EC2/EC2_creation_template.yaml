@@ -17,6 +17,9 @@ Resources:
           Iops: "200"
           DeleteOnTermination: "true"
           VolumeSize: "10"
+      Tags:
+      - Key: Name
+        Value: 3tierAppEC2Instance
 
 # #Config Instance Connect Endpoint
 # Type: AWS::EC2::InstanceConnectEndpoint
