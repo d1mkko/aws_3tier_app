@@ -19,8 +19,8 @@ Resources:
     Properties:
       CidrBlock: 
         Ref: VpcCIDR
-      EnableDnsSupport: 'true'
-      EnableDnsHostnames: 'true'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
       Tags:
        - Key: Name
          Value: 3tierAppVPC
@@ -78,11 +78,11 @@ Resources:
       RouteTableId:
         Ref: 3tierAppRouteTable
   
-  InstanceSecurityGroup:
+  3tierAppSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http to client host
-      GroupName : 3tierAppSecGroup
+      GroupName : "3tierAppSecGroup"
       VpcId: 
         Ref: 3tierAppVPC
       SecurityGroupIngress:
@@ -99,7 +99,15 @@ Resources:
 Outputs:
   # Export the Security Group ID
   Exported3tierAppSecGroupId:
+    Description: "The ID of the security group"
     Value: 
       Ref: 3tierAppSecGroup  
     Export:
-      Name: "3tierAppSecGroupId" 
+      Name: 3tierAppSecGroupId
+
+  Exported3tierAppPublicSubnet:
+    Description: "The ID of the security group"
+    Value: 
+      Ref: 3tierAppPublicSubnet  
+    Export:
+      Name: 3tierAppPublicSubnetID

@@ -1,6 +1,3 @@
-Parameters:
-
-
 #Config single instance
 Resources:
   3tierAPPSingleInstance: 
@@ -9,9 +6,10 @@ Resources:
       ImageId: "ami-06ee6255945a96aba"
       InstanceType: t2.micro
       KeyName: "simple-key-pair"
-      SubnetId: "subnet-0f4c7161d10d1d74b"
+      SubnetId: 
+        Fn::ImportValue: "3tierAppPublicSubnetID"
       SecurityGroupIds: 
-          Fn::ImportValue: "3tierAppSecGroupId"
+        - Fn::ImportValue: "3tierAppSecGroupId"
       BlockDeviceMappings: 
       - DeviceName: "/dev/xvda"
         Ebs: 
