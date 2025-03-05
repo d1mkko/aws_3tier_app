@@ -96,4 +96,10 @@ Resources:
           CidrIp: 0.0.0.0/0
   
 
-#Outputs:
+Outputs:
+  # Export the Security Group ID
+  Exported3tierAppSecGroupId:
+    Value: 
+      Ref: 3tierAppSecGroup  
+    Export:
+      Name: "3tierAppSecGroupId" 

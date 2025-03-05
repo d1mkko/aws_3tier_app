@@ -1,3 +1,6 @@
+Parameters:
+
+
 #Config single instance
 Resources:
   3tierAPPSingleInstance: 
@@ -8,7 +11,7 @@ Resources:
       KeyName: "simple-key-pair"
       SubnetId: "subnet-0f4c7161d10d1d74b"
       SecurityGroupIds: 
-          - "sg-024bde94f33c4efa3"
+          Fn::ImportValue: "3tierAppSecGroupId"
       BlockDeviceMappings: 
       - DeviceName: "/dev/xvda"
         Ebs: 
@@ -17,4 +20,14 @@ Resources:
           DeleteOnTermination: "true"
           VolumeSize: "10"
 
-#Config Instance Group
+# #Config Instance Connect Endpoint
+# Type: AWS::EC2::InstanceConnectEndpoint
+# Properties:
+#   ClientToken: String
+#   PreserveClientIp: Boolean
+#   SecurityGroupIds: 
+#     - String
+#   SubnetId: String
+#   Tags: 
+#     - Tag
+
