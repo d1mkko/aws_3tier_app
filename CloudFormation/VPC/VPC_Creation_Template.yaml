@@ -7,7 +7,7 @@ Parameters:
     Type: String
     Default: 10.0.0.0/16
     Description: Defining VPC CIDR range
-  
+
   PublicSubnetCIDR:
     Type: String
     Default: 10.0.1.0/24
@@ -19,6 +19,9 @@ Parameters:
     Description: Defining Subnet CIDR range
 
 Resources:
+
+# Public Subnet Creation 
+
   3tierAppVPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -57,18 +60,6 @@ Resources:
       - Key: Name
         Value: 3tierAppPublicSubnet
 
-  3tierAppPrivateSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: 3tierAppVPC
-      CidrBlock: 
-        Ref: PrivateSubnetCIDR
-      AvailabilityZone: "eu-central-1a"
-      Tags:
-      - Key: Name
-        Value: 3tierAppPublicSubnet
-
   3tierAppRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -95,11 +86,12 @@ Resources:
       RouteTableId:
         Ref: 3tierAppRouteTable
   
-  3tierAppSecGroup:
+  # Creating Security Group
+  3tierAppPublicSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow http to client host
-      GroupName : "3tierAppSecGroup"
+      GroupName : "3tierAppPublicSecGroup"
       VpcId: 
         Ref: 3tierAppVPC
       SecurityGroupIngress:
@@ -111,16 +103,102 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
+
+# Private Subnet Creation
+
+  3tierAppPrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: 3tierAppVPC
+      CidrBlock: 
+        Ref: PrivateSubnetCIDR
+      AvailabilityZone: "eu-central-1b"
+      Tags:
+      - Key: Name
+        Value: 3tierAppPrivateSubnet  
+
+  3tierAppPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Ref: 3tierAppVPC
+      Tags:
+        - Key: Name
+          Value: 3tierAppPrivateRouteTable
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: 3tierAppPrivateSubnet
+      RouteTableId:
+        Ref: 3tierAppPrivateRouteTable
+
+  RDSVpcEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: 
+        Ref: 3tierAppVPC
+      ServiceName: 
+        Fn::Sub: "com.amazonaws.${AWS::Region}.rds"
+      VpcEndpointType: Interface 
+      SubnetIds:
+        - Ref: 3tierAppPrivateSubnet 
+      SecurityGroupIds:
+        - Ref: 3tierAppPrivateSecGroup
+      PrivateDnsEnabled: true
+      Tags:
+        - Key: Name
+          Value: RDSVpcEndpoint
+
+  3tierAppPrivateSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      GroupName : "3tierAppPrivateSecGroup"
+      VpcId: 
+        Ref: 3tierAppVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.1.0/24
+
+# Creating RDS Security Group
+
+  RDSInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow database access from private EC2 instances"
+      VpcId: 
+        Ref: 3tierAppVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "3306"  
+          ToPort: "3306"
+          SourceSecurityGroupId: 
+            Ref: 3tierAppPrivateSecGroup
+      Tags:
+        - Key: Name
+          Value: RDSInstanceSecurityGroup
   
 
 Outputs:
   # Export the Security Group ID
-  Exported3tierAppSecGroupId:
+  Exported3tierAppPublicSecGroup:
     Description: "The ID of the security group"
     Value: 
-      Ref: 3tierAppSecGroup  
+      Ref: 3tierAppPublicSecGroup  
     Export:
-      Name: 3tierAppSecGroupId
+      Name: 3tierAppPublicSecGroupId
+
+  Exported3tierAppPrivateSecGroupId:
+    Description: "The ID of the security group"
+    Value: 
+      Ref: 3tierAppPrivateSecGroup  
+    Export:
+      Name: 3tierAppPrivateSecGroupId
 
   Exported3tierAppPublicSubnet:
     Description: "The ID of the security group"
@@ -135,3 +213,10 @@ Outputs:
       Ref: 3tierAppPrivateSubnet  
     Export:
       Name: 3tierAppPrivateSubnetID
+
+  ExportedRDSInstanceSecurityGroup:
+    Description: "The ID of the security group"
+    Value: 
+      Ref: RDSInstanceSecurityGroup  
+    Export:
+      Name: RDSInstanceSecurityGroupID

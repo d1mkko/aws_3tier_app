@@ -1,15 +1,31 @@
 #Config single instance
 Resources:
-  3tierAPPSingleInstance: 
+
+# Creating DB Subnet Group
+  RDSDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "Subnets for RDS instances"
+      SubnetIds:
+        - Fn::ImportValue: 3tierAppPrivateSubnetID
+        - Fn::ImportValue: 3tierAppPublicSubnetID
+      Tags:
+        - Key: Name
+          Value: RDSDBSubnetGroup
+
+#Creating Public Instance
+
+  3tierAPPSinglePublicInstance: 
     Type: AWS::EC2::Instance
     Properties: 
       ImageId: "ami-06ee6255945a96aba"
+      AvailabilityZone: "eu-central-1a"
       InstanceType: t2.micro
       KeyName: "simple-key-pair"
       SubnetId: 
         Fn::ImportValue: "3tierAppPublicSubnetID"
       SecurityGroupIds: 
-        - Fn::ImportValue: "3tierAppSecGroupId"
+        - Fn::ImportValue: "3tierAppPublicSecGroupId"
       BlockDeviceMappings: 
       - DeviceName: "/dev/xvda"
         Ebs: 
@@ -19,7 +35,50 @@ Resources:
           VolumeSize: "10"
       Tags:
       - Key: Name
-        Value: 3tierAppEC2Instance
+        Value: 3tierAppPublicEC2Instance
+
+# Creating Private instance
+
+  3tierAPPSinglePrivateInstance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: "ami-06ee6255945a96aba"
+      InstanceType: t2.micro
+      AvailabilityZone: "eu-central-1b"
+      KeyName: "simple-key-pair"
+      SubnetId: 
+        Fn::ImportValue: "3tierAppPrivateSubnetID"
+      SecurityGroupIds: 
+        - Fn::ImportValue: "3tierAppPrivateSecGroupId"
+      BlockDeviceMappings: 
+      - DeviceName: "/dev/xvda"
+        Ebs: 
+          VolumeType: "gp3"
+          Iops: "200"
+          DeleteOnTermination: "true"
+          VolumeSize: "10"
+      Tags:
+      - Key: Name
+        Value: 3tierAppPrivateEC2Instance
+
+# Creating RDS Instance
+
+  RDS3tierAppDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: "RDS3tierAppDatabase"
+      AllocatedStorage: 20
+      DBInstanceClass: "db.t3.micro"
+      Engine: "mysql" 
+      MasterUsername: "admin"
+      MasterUserPassword: "mypassword"
+      VPCSecurityGroups:
+        - Fn::ImportValue: "RDSInstanceSecurityGroupID"
+      DBSubnetGroupName:
+        Ref: "RDSDBSubnetGroup"
+      Tags:
+        - Key: Name
+          Value: RDS3tierAppDatabase
 
 # Parameters:
 #   LatestAmiId:
