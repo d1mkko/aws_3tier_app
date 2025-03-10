@@ -8,9 +8,14 @@ Parameters:
     Default: 10.0.0.0/16
     Description: Defining VPC CIDR range
   
-  SubnetCIDR:
+  PublicSubnetCIDR:
     Type: String
     Default: 10.0.1.0/24
+    Description: Defining Subnet CIDR range
+
+  PrivateSubnetCIDR:
+    Type: String
+    Default: 10.0.128.0/24
     Description: Defining Subnet CIDR range
 
 Resources:
@@ -46,12 +51,24 @@ Resources:
       VpcId:
         Ref: 3tierAppVPC
       CidrBlock: 
-        Ref: SubnetCIDR
+        Ref: PublicSubnetCIDR
       AvailabilityZone: "eu-central-1a"
       Tags:
       - Key: Name
         Value: 3tierAppPublicSubnet
-  
+
+  3tierAppPrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: 3tierAppVPC
+      CidrBlock: 
+        Ref: PrivateSubnetCIDR
+      AvailabilityZone: "eu-central-1a"
+      Tags:
+      - Key: Name
+        Value: 3tierAppPublicSubnet
+
   3tierAppRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -111,3 +128,10 @@ Outputs:
       Ref: 3tierAppPublicSubnet  
     Export:
       Name: 3tierAppPublicSubnetID
+
+  Exported3tierAppPrivateSubnet:
+    Description: "The ID of the security group"
+    Value: 
+      Ref: 3tierAppPrivateSubnet  
+    Export:
+      Name: 3tierAppPrivateSubnetID
